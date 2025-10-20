@@ -78,7 +78,9 @@ O arquivo `.github/workflows/docker.yml` é um workflow reutilizável responsáv
 O propósito deste projeto é demonstrar o uso de **Integração Contínua (CI)** para:
 - Automatizar builds e testes de aplicações Go  
 - Garantir que cada commit seja testado e validado  
-- Facilitar a entrega contínua com imagens Docker publicadas automaticamente  
+- Facilitar a entrega contínua com imagens Docker publicadas automaticamente
+
+<img width="1024" height="1024" alt="ChatGPT Image 20 de out  de 2025, 16_32_09" src="https://github.com/user-attachments/assets/07bd8c3e-1149-4060-a347-8d3917975fcc" />
 
 ---
 
