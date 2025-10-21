@@ -88,6 +88,7 @@ O propósito deste projeto é demonstrar o uso de **Integração Contínua (CI)*
 
 **Fernando Tobace**  
 📧 fertobace@gmail.com
-🌐 GitHub: [github.com/fertobace](https://github.com/fertobace)
+![Imagem do WhatsApp de 2025-10-20 à(s) 23 33 58_18e84178](https://github.com/user-attachments/assets/51e0c4d1-3a23-40b8-bc17-5f7cdb6a3e36)
+
 
 ---
