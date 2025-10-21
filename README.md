@@ -1,4 +1,4 @@
-# 🚀 Projeto de Integração Contínua (CI) com Go, Docker e PostgreSQL
+# 🚀 Projeto de Integração Contínua (CI) com Go e Docker 
 
 Este projeto demonstra a implementação de um pipeline de **Integração Contínua (CI)** usando **GitHub Actions**, com um ambiente configurado em **Docker Compose** para testes automatizados em uma aplicação **Go (Golang)** conectada ao **PostgreSQL**.
 
