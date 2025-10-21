@@ -79,8 +79,7 @@ O propósito deste projeto é demonstrar o uso de **Integração Contínua (CI)*
 - Automatizar builds e testes de aplicações Go  
 - Garantir que cada commit seja testado e validado  
 - Facilitar a entrega contínua com imagens Docker publicadas automaticamente
-
-<img width="1024" height="1024" alt="ChatGPT Image 20 de out  de 2025, 16_32_09" src="https://github.com/user-attachments/assets/07bd8c3e-1149-4060-a347-8d3917975fcc" />
+![Imagem do WhatsApp de 2025-10-20 à(s) 23 33 58_18e84178](https://github.com/user-attachments/assets/51e0c4d1-3a23-40b8-bc17-5f7cdb6a3e36)
 
 ---
 
@@ -88,7 +87,6 @@ O propósito deste projeto é demonstrar o uso de **Integração Contínua (CI)*
 
 **Fernando Tobace**  
 📧 fertobace@gmail.com
-![Imagem do WhatsApp de 2025-10-20 à(s) 23 33 58_18e84178](https://github.com/user-attachments/assets/51e0c4d1-3a23-40b8-bc17-5f7cdb6a3e36)
 
 
 ---
