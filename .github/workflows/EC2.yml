@@ -54,11 +54,21 @@ jobs:
             export DBNAME=${{ secrets.DB_NAME }}
             export DBPORT=${{ secrets.DB_PORT }}
             export PORT=8000
+            echo "🔧 Verificando se o PostgreSQL está instalado..."
+            if ! command -v psql > /dev/null; then
+              echo "⚠️ PostgreSQL não encontrado. Instalando..."
+              sudo apt-get update -y
+              sudo apt-get install -y postgresql postgresql-contrib
+              echo "✅ PostgreSQL instalado com sucesso!"
+            else
+              echo "✅ PostgreSQL já está instalado!"
+            fi
             echo "🔍 Verificando se o PostgreSQL está rodando..."
             if sudo systemctl is-active --quiet postgresql; then
               echo "✅ PostgreSQL já está ativo!"
             else
               echo "⚠️ PostgreSQL não está rodando. Tentando iniciar..."
+              sudo systemctl enable postgresql
               sudo systemctl start postgresql
               sleep 5
               if sudo systemctl is-active --quiet postgresql; then
