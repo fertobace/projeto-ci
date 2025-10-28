@@ -54,16 +54,30 @@ jobs:
             export DBNAME=${{ secrets.DB_NAME }}
             export DBPORT=${{ secrets.DB_PORT }}
             export PORT=8000
-            echo "Executando aplicação..."
+            echo "🔍 Verificando se o PostgreSQL está rodando..."
+            if sudo systemctl is-active --quiet postgresql; then
+              echo "✅ PostgreSQL já está ativo!"
+            else
+              echo "⚠️ PostgreSQL não está rodando. Tentando iniciar..."
+              sudo systemctl start postgresql
+              sleep 5
+              if sudo systemctl is-active --quiet postgresql; then
+                echo "✅ PostgreSQL iniciado com sucesso!"
+              else
+                echo "❌ Falha ao iniciar o PostgreSQL!"
+                exit 1
+              fi
+            fi
+            echo "🚀 Iniciando aplicação..."
             chmod +x main
             nohup ./main > nohup.out 2> nohup.err < /dev/null &
-            echo "✅ Deploy finalizado com sucesso!"
-            echo "🔍 Verificando se a aplicação está rodando..."
             sleep 5
+            echo "🔍 Verificando se a aplicação está rodando..."
             if pgrep -f main > /dev/null; then
               echo "✅ Processo do servidor Go está ativo!"
             else
               echo "❌ O processo não foi encontrado! Verifique nohup.err."
+              cat nohup.err
               exit 1
             fi
             echo "🌐 Checando se a porta 8000 está escutando..."
@@ -71,5 +85,6 @@ jobs:
               echo "✅ Porta 8000 está aberta!"
             else
               echo "⚠️ Porta 8000 não está escutando, pode ter falhado o start."
+              cat nohup.err
             fi
 
