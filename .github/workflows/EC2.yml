@@ -4,38 +4,49 @@ on:
   workflow_call:
 
 jobs:
-  EC2:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
           name: programa
+          path: ./programa
 
-      - uses: actions/checkout@v4
+      - name: Move artifact to root
+        run: |
+          mv ./programa/main ./main
+          ls -l ./main
 
-      - name: Deploy to Staging Server
-        uses: easingthemes/ssh-deploy@main
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload files to EC2
+        uses: appleboy/scp-action@v0.1.4
         with:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-          REMOTE_USER: ${{ secrets.REMOTE_USER }}
-          TARGET: ${{ secrets.REMOTE_TARGET }}
-          EXCLUDE: "/dist/, /node_modules/"
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "./main"
+          target: ${{ secrets.REMOTE_TARGET }}
 
-      - name: Run app on EC2 via SSH
+      - name: Run application on EC2
         uses: fifsky/ssh-action@master
         with:
+          host: ${{ secrets.REMOTE_HOST }}
+          user: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           command: |
+            cd ${{ secrets.REMOTE_TARGET }}
+            echo "Configurando variáveis de ambiente..."
             export HOST=${{ secrets.DB_HOST }}
             export USER=${{ secrets.DB_USER }}
             export PASSWORD=${{ secrets.DB_PASSWORD }}
             export DBNAME=${{ secrets.DB_NAME }}
             export DBPORT=${{ secrets.DB_PORT }}
             export PORT=8000
+            echo "Executando aplicação..."
             chmod +x main
             nohup ./main > nohup.out 2> nohup.err < /dev/null &
-          host: ${{ secrets.REMOTE_HOST }}
-          user: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-
+            echo "✅ Deploy finalizado com sucesso!"
