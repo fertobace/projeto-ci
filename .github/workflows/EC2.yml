@@ -4,42 +4,20 @@ on:
   workflow_call:
 
 jobs:
-  deploy:
+  EC2:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: programa
-          path: ./programa
-
-      - name: Move artifact to root
-        run: |
-          mv ./programa/main ./main
-          ls -l ./main
-        
-      - name: Create target directory on EC2
-        uses: fifsky/ssh-action@master
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          user: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          command: mkdir -p ${{ secrets.REMOTE_TARGET }}
-
-      - name: Upload binary to EC2
+      - name: Enviar arquivos para EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "./main"
+          source: "main"
           target: ${{ secrets.REMOTE_TARGET }}
 
-      - name: Run application on EC2
+      - name: Executar comandos no servidor EC2
         uses: fifsky/ssh-action@master
         with:
           host: ${{ secrets.REMOTE_HOST }}
@@ -54,6 +32,7 @@ jobs:
             export DBNAME=${{ secrets.DB_NAME }}
             export DBPORT=${{ secrets.DB_PORT }}
             export PORT=8000
+
             echo "🔧 Verificando se o PostgreSQL está instalado..."
             if ! command -v psql > /dev/null; then
               echo "⚠️ PostgreSQL não encontrado. Instalando..."
@@ -62,7 +41,8 @@ jobs:
               echo "✅ PostgreSQL instalado com sucesso!"
             else
               echo "✅ PostgreSQL já está instalado!"
-            fi   
+            fi
+
             echo "🔍 Verificando se o PostgreSQL está rodando..."
             if sudo systemctl is-active --quiet postgresql; then
               echo "✅ PostgreSQL já está ativo!"
@@ -77,15 +57,23 @@ jobs:
                 echo "❌ Falha ao iniciar o PostgreSQL!"
                 exit 1
               fi
-            fi 
+            fi
+
+            echo "🔧 Ajustando autenticação (pg_hba.conf)..."
+            sudo sed -i "s/local\s\+all\s\+postgres\s\+peer/local all postgres trust/" /etc/postgresql/*/main/pg_hba.conf
+            sudo sed -i "s/local\s\+all\s\+all\s\+peer/local all all md5/" /etc/postgresql/*/main/pg_hba.conf
+            sudo systemctl restart postgresql
+
             echo "⚙️ Configurando banco de dados padrão..."
             sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='${USER}';" | grep -q 1 || sudo -u postgres psql -c "CREATE ROLE ${USER} LOGIN PASSWORD '${PASSWORD}';"
             sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='${DBNAME}';" | grep -q 1 || sudo -u postgres psql -c "CREATE DATABASE ${DBNAME} OWNER ${USER};"
             echo "✅ Banco e usuário configurados!"
+
             echo "🚀 Iniciando aplicação..."
             chmod +x main
             nohup ./main > nohup.out 2> nohup.err < /dev/null &
             sleep 5
+
             echo "🔍 Verificando se a aplicação está rodando..."
             if pgrep -f main > /dev/null; then
               echo "✅ Processo do servidor Go está ativo!"
@@ -94,6 +82,7 @@ jobs:
               cat nohup.err
               exit 1
             fi
+
             echo "🌐 Checando se a porta 8000 está escutando..."
             if sudo ss -tuln | grep -q ':8000'; then
               echo "✅ Porta 8000 está aberta!"
