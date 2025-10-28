@@ -1,38 +1,41 @@
 name: EC2
 
 on:
-  workflow_call: 
+  workflow_call:
 
 jobs:
-
   EC2:
     runs-on: ubuntu-latest
-    steps: 
-    - name: Download a Build Artifact
-      uses: actions/download-artifact@v3.0.0
-      with:
-        name: programa
-    - uses: actions/checkout@v3
-    - name: Deploy to Staging server
-      uses: easingthemes/ssh-deploy@main
-      with:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
-        REMOTE_USER: ${{ secrets.REMOTE_USER }}
-        TARGET: ${{ secrets.REMOTE_TARGET }}
-        EXCLUDE: "/dist/, /node_modules/"
-    - name: ls -a via ssh
-      uses: fifsky/ssh-action@master
-      with:
-        command: |
-          export HOST= ${{ secrets.DB_HOST }}
-          export USER= ${{ secrets.DB_USER }}
-          export PASSWORD= ${{ secrets.DB_PASSWORD }}
-          export DBNAME= ${{ secrets.DB_NAME }}
-          export DBPORT= ${{ secrets.DB_PORT }}
-          export PORT= 8000
-          chmod +x main
-          nohup ./main &
-        host: ${{ secrets.REMOTE_HOST }}
-        user: ${{ secrets.REMOTE_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: programa
+
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Staging Server
+        uses: easingthemes/ssh-deploy@main
+        with:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.REMOTE_HOST }}
+          REMOTE_USER: ${{ secrets.REMOTE_USER }}
+          TARGET: ${{ secrets.REMOTE_TARGET }}
+          EXCLUDE: "/dist/, /node_modules/"
+
+      - name: Run app on EC2 via SSH
+        uses: fifsky/ssh-action@master
+        with:
+          command: |
+            export HOST=${{ secrets.DB_HOST }}
+            export USER=${{ secrets.DB_USER }}
+            export PASSWORD=${{ secrets.DB_PASSWORD }}
+            export DBNAME=${{ secrets.DB_NAME }}
+            export DBPORT=${{ secrets.DB_PORT }}
+            export PORT=8000
+            chmod +x main
+            nohup ./main &
+          host: ${{ secrets.REMOTE_HOST }}
+          user: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+
