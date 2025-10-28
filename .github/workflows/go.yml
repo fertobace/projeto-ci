@@ -36,10 +36,10 @@ jobs:
       DBNAME: root
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go_version }}
 
@@ -57,15 +57,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: 1.18
 
       - name: Build
-        run: go build -v main.go
+        run: go build -o main main.go
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: programa
+          path: main
 
   docker:
     needs: build
@@ -76,4 +82,5 @@ jobs:
     needs: build
     uses: ./.github/workflows/EC2.yml
     secrets: inherit
+
 
