@@ -58,3 +58,18 @@ jobs:
             chmod +x main
             nohup ./main > nohup.out 2> nohup.err < /dev/null &
             echo "✅ Deploy finalizado com sucesso!"
+            echo "🔍 Verificando se a aplicação está rodando..."
+            sleep 5
+            if pgrep -f main > /dev/null; then
+              echo "✅ Processo do servidor Go está ativo!"
+            else
+              echo "❌ O processo não foi encontrado! Verifique nohup.err."
+              exit 1
+            fi
+            echo "🌐 Checando se a porta 8000 está escutando..."
+            if sudo netstat -tuln | grep -q ':8000'; then
+              echo "✅ Porta 8000 está aberta!"
+            else
+              echo "⚠️ Porta 8000 não está escutando, pode ter falhado o start."
+            fi
+
