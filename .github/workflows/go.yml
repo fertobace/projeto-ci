@@ -8,17 +8,32 @@ on:
 
 jobs:
   test:
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go_version: ["1.18"]
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: root
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U root"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     env:
       HOST: localhost
       DBPORT: 5432
       USER: root
       PASSWORD: root
       DBNAME: root
-    strategy:
-      matrix:
-        go_version: ["1.18", "1.17", ">=1.18"]
-        os: ["ubuntu-latest"]
 
     steps:
       - uses: actions/checkout@v3
@@ -28,26 +43,18 @@ jobs:
         with:
           go-version: ${{ matrix.go_version }}
 
-      - name: Install Docker Compose
+      - name: Wait for Postgres
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
+          echo "⏳ Aguardando banco de dados iniciar..."
+          until pg_isready -h localhost -p 5432 -U root; do sleep 2; done
+          echo "✅ Banco de dados disponível!"
 
-      - name: Build-DB
-        run: docker-compose build
-
-      - name: Create-DB
-        run: docker-compose up -d
-
-      - name: Test
-        run: go test -v main_test.go
+      - name: Run tests
+        run: go test -v ./...
 
   build:
     needs: test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: ["ubuntu-latest"]
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -60,12 +67,13 @@ jobs:
       - name: Build
         run: go build -v main.go
 
-  docker: 
-      needs: build
-      uses: ./.github/workflows/docker.yml
-      secrets: inherit
+  docker:
+    needs: build
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
 
-  deploy_EC2: 
-      needs: build
-      uses: ./.github/workflows/EC2.yml
-      secrets: inherit
+  deploy_EC2:
+    needs: build
+    uses: ./.github/workflows/EC2.yml
+    secrets: inherit
+
