@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
@@ -19,10 +22,7 @@ jobs:
           mv ./programa/main ./main
           ls -l ./main
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Upload files to EC2
+      - name: Upload binary to EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.REMOTE_HOST }}
