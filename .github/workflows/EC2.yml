@@ -62,7 +62,7 @@ jobs:
               echo "✅ PostgreSQL instalado com sucesso!"
             else
               echo "✅ PostgreSQL já está instalado!"
-            fi
+            fi   
             echo "🔍 Verificando se o PostgreSQL está rodando..."
             if sudo systemctl is-active --quiet postgresql; then
               echo "✅ PostgreSQL já está ativo!"
@@ -77,7 +77,11 @@ jobs:
                 echo "❌ Falha ao iniciar o PostgreSQL!"
                 exit 1
               fi
-            fi
+            fi 
+            echo "⚙️ Configurando banco de dados padrão..."
+            sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='${USER}';" | grep -q 1 || sudo -u postgres psql -c "CREATE ROLE ${USER} LOGIN PASSWORD '${PASSWORD}';"
+            sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='${DBNAME}';" | grep -q 1 || sudo -u postgres psql -c "CREATE DATABASE ${DBNAME} OWNER ${USER};"
+            echo "✅ Banco e usuário configurados!"
             echo "🚀 Iniciando aplicação..."
             chmod +x main
             nohup ./main > nohup.out 2> nohup.err < /dev/null &
@@ -91,10 +95,9 @@ jobs:
               exit 1
             fi
             echo "🌐 Checando se a porta 8000 está escutando..."
-            if sudo netstat -tuln | grep -q ':8000'; then
+            if sudo ss -tuln | grep -q ':8000'; then
               echo "✅ Porta 8000 está aberta!"
             else
               echo "⚠️ Porta 8000 não está escutando, pode ter falhado o start."
               cat nohup.err
             fi
-
